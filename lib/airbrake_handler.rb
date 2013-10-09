@@ -37,7 +37,7 @@ class AirbrakeHandler < Chef::Handler
       Chef::Log.error("Creating Airbrake exception report")
 
       if @options.has_key?(:cookbook_keys)
-        @api_key = @options[:cookbook_keys].select { |c, k | run_status.backtrace.first.include?(c) }
+        @api_key = @options[:cookbook_keys].select { |c, k | run_status.backtrace.first.include?(c.to_s) }
 	Chef::Log.debug "API key is now #{@api_key}"
       end
 
