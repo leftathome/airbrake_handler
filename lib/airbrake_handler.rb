@@ -1,5 +1,6 @@
 #
 # Author:: Adam Jacob (<adam@opscode.com>)
+# Author:: Steven Wagner (<leftathome@gmail.com>)
 # Copyright:: Copyright (c) 2010 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
@@ -20,7 +21,7 @@ require "chef/handler"
 require "toadhopper"
 
 class AirbrakeHandler < Chef::Handler
-  VERSION = "0.4.0"
+  VERSION = "0.4.1"
 
   attr_accessor :options, :api_key, :ignore, :notify_host
 
@@ -34,6 +35,11 @@ class AirbrakeHandler < Chef::Handler
   def report
     if run_status.failed? && !ignore_exception?(run_status.exception)
       Chef::Log.error("Creating Airbrake exception report")
+
+      if @options.has_key?(:cookbook_keys)
+        @api_key = @options[:cookbook_keys].select { |c, k | run_status.backtrace.first.include?(c) }
+	Chef::Log.debug "API key is now #{@api_key}"
+      end
 
       client.post!(run_status.exception, airbrake_params)
     end
@@ -49,7 +55,7 @@ class AirbrakeHandler < Chef::Handler
     {
       :notifier_name    => "Chef Airbrake Notifier",
       :notifier_version => VERSION,
-      :notifier_url     => "https://github.com/morgoth/airbrake_handler",
+      :notifier_url     => "https://github.com/leftathome/airbrake_handler",
       :component        => run_status.node.name,
       :url              => nil,
       :environment      => {},
