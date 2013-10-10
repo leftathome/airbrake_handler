@@ -82,6 +82,20 @@ describe AirbrakeHandler do
     assert handler.ignore_exception?(Exception.new("catch me if you can"))
   end
 
+  it "uses a different API key if the backtrace contains a matching cookbook" do
+    exception = Exception.new
+    run_status = stub(:failed? => true, :exception => exception)
+    client = mock
+    handler = AirbrakeHandler.new(:api_key => "fake", :options => { :cookbook_keys => { 'foo' => 'fake1', 'bar' => 'fake2' } })
+    handler.stubs(:run_status).returns(run_status)
+    handler.stubs(:client).returns(client)
+    handler.stubs(:airbrake_params).returns({})
+
+    client.expects(:post!).with(exception, {})
+
+    handler.report
+  end
+
   # params
 
   it "returns Airbrake params" do
